@@ -2,6 +2,6 @@ import "./LandingPage.css"
 
 export default function LandingPage() {
     return (
-        <div>LandingPage</div>
+        <div className="LandingPageContainer">LandingPage</div>
     )
 }
