@@ -1,3 +1,60 @@
-div {
-    color: red;
+.LandingPageContainer {
+    width: 100vw;
+    height: 100vh;
+    background: url("/public/background.png"); /* works with or without ""*/
+    background-repeat: no-repeat;
+    background-size: cover;
+    color: WHITE;
+}
+
+.LandingPageContainer nav {
+    padding-inline: 1.2rem;
+    padding-block: 1.6rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.LandingPageContainer h2 {
+    font-size: 1.8rem;
+    font-weight: 500;
+}
+
+.LandingPageContainer nav .navList {
+    display: flex;
+    gap: 1.8rem;
+    cursor: pointer;
+}
+
+.LandingMainContainer {
+    display: flex;
+    justify-content: space-between;
+    padding-inline: 2.9rem;
+    height: 80vh;
+    align-items: center;
+}
+
+.LandingMainContainer > div:nth-child(1) {
+    /* transform: scale(2); */
+    font-size: 2.1rem;
+}
+
+.LandingMainContainer > div:nth-child(1) div[role="button"] {
+    background-color: #D97500;
+    width: fit-content;
+    padding-inline: 1rem;
+    padding-block: 0.5rem;
+    border-radius: 20px;
+    margin-top: 2rem;
+}
+
+.LandingMainContainer > div:nth-child(1) div[role="button"] a {
+    text-decoration: none;
+    color: white;
+    font-size: 2rem;
+}
+
+.LandingMainContainer > div:nth-child(2) img {
+    height: 70vh;
+    width: auto;
 }
