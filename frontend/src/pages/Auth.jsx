@@ -15,7 +15,7 @@ import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 // import { AuthContext } from '../contexts/AuthContext';
 import { Button, Snackbar } from '@mui/material';
-
+import { AuthContext } from '../contexts/AuthContext';
 
 
 
@@ -25,47 +25,50 @@ const defaultTheme = createTheme();
 
 export default function Authentication() {
 
-    const [username, setUsername] = useState();
-    const [password, setPassword] = useState();
-    const [name, setName] = useState();
-    const [error, setError] = useState();
-    const [message, setMessage] = useState();
+    // we haven't set initial value in still no error ?useState // not error it gives warning in console
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [name, setName] = useState("");
+
+    const [error, setError] = useState("");
+
+    const [message, setMessage] = useState("");
 
     const [formState, setFormState] = useState(0);
 
     const [open, setOpen] = useState(false);    // for snackbar
 
-    // const { handleRegister, handleLogin } = React.useContext(AuthContext);
+    const { handleRegister, handleLogin } = React.useContext(AuthContext);
+
 
     let handleAuth = async () => {
-        // try {
-        //     if (formState === 0) {
-
-        //         let result = await handleLogin(username, password)
-
-
-        //     }
-        //     if (formState === 1) {
-        //         let result = await handleRegister(name, username, password);
-        //         console.log(result);
-        //         setUsername("");
-        //         setMessage(result);
-        //         setOpen(true);
-        //         setError("")
-        //         setFormState(0)
-        //         setPassword("")
-        //     }
-        // } catch (err) {
-
-        //     console.log(err);
-        //     let message = (err.response.data.message);
-        //     setError(message);
-        // }
+        try {
+            // login
+            if (formState === 0) {
+                let result = await handleLogin(username, password);
+            }
+            // signup
+            if (formState === 1) {
+                let result = await handleRegister(name, username, password);
+                console.log(result);
+                setMessage(result);
+                setOpen(true);
+                setError(() => "");
+                setFormState(() => 0);
+                setPassword(() => "");
+                setUsername(() => "");
+                setName(() => "")
+            }
+        } catch (err) {
+            let message = err.response.data.message;
+            setError(message);  // to show in ui 
+        }
     }
 
 
     return (
-        <ThemeProvider theme={defaultTheme}>
+        <ThemeProvider
+            theme={defaultTheme}>
             <Grid container component="main" sx={{ height: '100vh' }}>
                 <CssBaseline />
                 <Grid
@@ -81,7 +84,17 @@ export default function Authentication() {
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                     }}
+                    style={{
+                        height: "100vh",
+                        width: "60vw",
+                        backgroundRepeat: "no-repeat",
+                        backgroundSize: "cover",
+                        backgroundImage: "url('/videologo.avif')"
+                    }}
                 />
+
+                <div
+                ></div>
                 <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
                     <Box
                         sx={{
@@ -142,7 +155,7 @@ export default function Authentication() {
                                 onChange={(e) => setPassword(e.target.value)}
                             />
 
-                            <p style={{ color: "red" }}>{error}</p>
+                            <p style={{color: "red"}}>{error}</p>
 
                             <Button
                                 type="button"
@@ -151,7 +164,7 @@ export default function Authentication() {
                                 sx={{ mt: 3, mb: 2 }}
                                 onClick={handleAuth}
                             >
-                                {formState === 0 ? "Login " : "Register"}
+                            { formState === 0 ? "login" : "register"}
                             </Button>
 
                         </Box>
@@ -159,12 +172,11 @@ export default function Authentication() {
                 </Grid>
             </Grid>
 
-            {/* <Snackbar
-
+            <Snackbar
                 open={open}
                 autoHideDuration={4000}
                 message={message}
-            /> */}
+            />
 
         </ThemeProvider>
     );
