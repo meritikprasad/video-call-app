@@ -11,11 +11,11 @@ const login = async (req, res) => {
     let { username, password } = req.body;
     
     if (!username) {
-        res.status(400).json({ message: "Please Provide username" });
+        return res.status(400).json({ message: "Please Provide username" });
     }
 
     if (!password) {
-        res.status(400).json({ message: "Please Provide password" });
+        return res.status(400).json({ message: "Please Provide password" });
     }
 
     try {
@@ -24,7 +24,7 @@ const login = async (req, res) => {
             return res.status(httpStatus.NOT_FOUND).json({ message: "User Not Found" });
         }
         
-        let isOk = await bcrypt.compare(password, user.password);
+        let isOk = await bcrypt.compare(password, user.password); // sir corrected this later
 
         if (isOk) {
             // let token = crypto.randomBytes(20).toString("hex"); 
@@ -32,7 +32,9 @@ const login = async (req, res) => {
             user.token = token;
             await user.save();
             return res.status(httpStatus.OK).json({ token: token });
-        } 
+        } else {
+            return res.status(httpStatus.UNAUTHORIZED).json({message: "invalid username or password"});
+        }
 
         return res.status(httpStatus.UNAUTHORIZED).json({message: "wrong password"});
 
@@ -49,7 +51,7 @@ const register = async (req, res) => {
         let existingUser = await User.findOne({ username });
 
         if (existingUser) {
-            res.status(httpStatus.FOUND).json({ message: "User Already Exists" });
+           return res.status(httpStatus.FOUND).json({ message: "User Already Exists" });
         }
 
         let hashedPassword = await bcrypt.hash(password, 10);
@@ -64,10 +66,10 @@ const register = async (req, res) => {
 
         await newUser.save();
 
-        res.status(httpStatus.CREATED).json({ message: "User Registerd" });
+        return res.status(httpStatus.CREATED).json({ message: "User Registerd" });
 
     } catch (e) {
-        res.json(`Something went wrong => ${e}`);
+        return res.json(`Something went wrong => ${e}`);
     }
 }
 
