@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import "../styles/VideoMeet.css";
+// import "../styles/VideoMeet.css";
+import styles from "../styles/VideoMeet.module.css";
+
 import { Button, TextField } from '@mui/material';
 import { io } from 'socket.io-client';
 
@@ -98,7 +100,69 @@ export default function VideoMeet() {
   }, [])
 
   let getUserMediaSuccess = (stream) => {
+    try { // try-catch => On first run, window.localStream may not exist , Prevents app crash
+      window.localStream.getTracks().forEach(track => track.stop())
+    } catch (e) { console.log(e) }  // catch(e => console.log(e)); // won't work only at .catch()
 
+    window.localStream = stream;
+    localVideoRef.current.srcObject = stream;
+
+    // NEW SDP after onended
+    for (let id in connections) {
+      if (id === socketIdRef.current) continue;
+      connections[id].addStream(window.localStream)
+      connections[id].createOffer().then((description) => {
+        connections[id].setLocalDescription(description)
+          .then(() => {
+            // yes => mistake- socketRef,
+            socketRef.current.emit("signal", id, JSON.stringify({ "sdp": connections[id].localDescription }))
+          }).catch(e => console.log(e));
+      })
+    }
+
+    stream.getTracks().forEach(track => track.onended = () => {
+      setVideo(false)
+      setAudio(false);
+
+      try {
+        let tracks = localVideoRef.current.srcObject.getTracks()
+        tracks.forEach(track => track.stop())
+
+        // TODO Black silence
+        let blackSilence = (...args) => new MediaStream([black(...args), silence()]);
+        window.localStream = blackSilence();
+        localVideoRef.current.srcObject = window.localStream;
+
+        for (let id in connections) {
+          connections[id].addStream(window.localStream)
+          connections[id].createOffer().then((description) => {
+            connections[id].setLocalDescription(description)
+              .then(() => {
+                socketRef.current.emit("signal", id, JSON.stringify({ "sdp": connections[id].localDescription }))
+                  .catch(e => console.log(e));
+              })
+          })
+        }
+      } catch (e) { console.log(e) }
+    })
+  }
+
+  let silence = () => {
+    let ctx = new AudioContext()
+    let oscillator = ctx.createOscillator(); // creating silence tone
+
+    let dst = oscillator.connect(ctx.createMediaStreamDestination());
+
+    oscillator.start();
+    ctx.resume()
+    return Object.assign(dst.stream.getAudioTracks()[0], { enabled: false })
+  }
+
+  let black = ({ width = 640, height = 480 } = {}) => {
+    let canvas = Object.assign(document.createElement("canvas"), { width, height });
+    canvas.getContext('2d').fillRect(0, 0, width, height);
+    let stream = canvas.captureStream();
+    return Object.assign(stream.getVideoTracks()[0], { enabled: false });
   }
 
   // when audio or video toggle is on or off
@@ -124,7 +188,26 @@ export default function VideoMeet() {
 
   //TODO 
   let gotMessageFromServer = (fromId, message) => {
-
+    let signal = JSON.parse(message);
+    // yes => mistake - it should be socketIdRef.current
+    if (fromId !== socketIdRef) {
+      if (signal.sdp) {
+        connections[fromId].setRemoteDescription(new RTCSessionDescription(signal.sdp)).then(() => {
+          if (signal.sdp.type === "offer") {
+            connections[fromId].createAnswer().then((description) => {
+              connections[fromId].setLocalDescription(description).then(() => {
+                // yes => should we set setLocalDescription()?
+                // yes => mistake-doubt - should it be socketRef.current ?
+                socketRef.current.emit("signal", fromId, JSON.stringify({ "sdp": connections[fromId].localDescription }))
+              }).catch(e => console.log(e));
+            }).catch(e => console.log(e));
+          }
+        }).catch(e => console.log(e));
+      }
+      if (signal.ice) {
+        connections[fromId].addIceCandidate(new RTCIceCandidate(signal.ice)).catch(e => console.log(e));
+      }
+    }
   }
 
   //TODO
@@ -144,7 +227,8 @@ export default function VideoMeet() {
       socketRef.current.on("chat-message", addMessage);
 
       socketRef.current.on("user-left", (id) => {
-        setVideo((videos) => videos.filter((video) => video.socketId != id));
+        //not setVideo
+        setVideos((videos) => videos.filter((video) => video.socketId != id));
       })
 
       socketRef.current.on("user-joined", (id, clients) => {
@@ -187,6 +271,9 @@ export default function VideoMeet() {
           } else {
             // TODO
             // let blackSilence
+            let blackSilence = (...args) => new MediaStream([black(...args), silence()]);
+            window.localStream = blackSilence();
+            connections[socketListId].addStream(window.localStream);
           }
         })
 
@@ -202,8 +289,7 @@ export default function VideoMeet() {
               connections[id2].setLocalDescription(description)
                 .then(() => {
                   socketRef.current.emit("signal", id2, JSON.stringify({ "sdp": connections[id2].localDescription }))
-                    .catch(e => console.log(e));
-                })
+                }).catch(e => console.log(e));
             })
           }
         }
@@ -236,7 +322,26 @@ export default function VideoMeet() {
             <div>
               <video ref={localVideoRef} autoPlay muted></video>
             </div>
-          </div> : <></>
+          </div> :
+          
+            <div className={styles.meetVideoContainer}>
+              <video className='meetUserVideo' ref={localVideoRef} autoPlay muted></video>
+              {videos.map((video) => (
+                <div key={video.socketId}>
+                  <h2>{video.socketId}</h2>
+                  <video
+                  data-socket={video.socketId}
+                  ref={ref => {
+                    if(ref && video.stream) {
+                      ref.srcObject = video.stream;
+                    }
+                  }}
+                  autoPlay
+                  ></video>
+                </div>
+              ))}
+            </div>
+          
       }
     </div>
 
