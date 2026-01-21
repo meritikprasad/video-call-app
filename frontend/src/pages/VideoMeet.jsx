@@ -13,6 +13,7 @@ import ChatIcon from '@mui/icons-material/Chat';
 
 import { Badge, Button, IconButton, TextField } from '@mui/material';
 import { io } from 'socket.io-client';
+import { useNavigate } from 'react-router-dom';
 
 const server_url = "http://localhost:8000";
 
@@ -26,37 +27,37 @@ const peerConfigConnections = {
 
 export default function VideoMeet() {
 
-  var socketRef = useRef();
-  let socketIdRef = useRef();
+  var socketRef = useRef(); // for socket.on or . emit
+  let socketIdRef = useRef(); // for curr socketId
 
   // for video stream
   let localVideoRef = useRef();   // for video dom
   let [videoAvailable, setVideoAvailable] = useState(true);   // for media stream
   let [audioAvailable, setAudioAvailable] = useState(true);   // for media stream
 
-  let [video, setVideo] = useState([]);
+  let [video, setVideo] = useState([]); // video toggle
 
-  let [audio, setAudio] = useState();
+  let [audio, setAudio] = useState(); // audio toggle
 
-  let [screen, setScreen] = useState();
+  let [screen, setScreen] = useState(); // for ?
 
-  let [showModal, setModal] = useState(); // name different
+  let [showModal, setModal] = useState(true); // chat toggle
 
-  let [screenAvailable, setScreenAvailable] = useState();
+  let [screenAvailable, setScreenAvailable] = useState(); // for ?
 
-  let [messages, setMessages] = useState([]);
+  let [messages, setMessages] = useState([]); // all messages array
 
-  let [message, setMessage] = useState("");
+  let [message, setMessage] = useState(""); // current message {sender, data}
 
-  let [newMessages, setNewMessages] = useState(3);
+  let [newMessages, setNewMessages] = useState(0); // for message badge
 
-  let [askForUsername, setAskForUsername] = useState(true);
+  let [askForUsername, setAskForUsername] = useState(true); // for ?
 
-  let [username, setUsername] = useState("");
+  let [username, setUsername] = useState(""); // for pages ?
 
-  const videoRef = useRef([]);
+  const videoRef = useRef([]); // for dom
 
-  let [videos, setVideos] = useState([]);
+  let [videos, setVideos] = useState([]); // ?
 
   // TODO
   // if(isChrome() === false) {
@@ -220,8 +221,15 @@ export default function VideoMeet() {
   }
 
   //TODO
-  let addMessage = () => {
+  let addMessage = (data, sender, socketIdSender) => {
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { sender: sender, data: data }
+    ])
 
+    if (socketIdSender !== socketIdRef.current) {
+      setNewMessages((prevMessages) => prevMessages + 1);  // yes it wasn't => how it is an array of objects 
+    }
   }
 
   let connectToSocketServer = () => {
@@ -313,6 +321,8 @@ export default function VideoMeet() {
     connectToSocketServer();
   }
 
+  let routeTo = useNavigate();
+
   let connect = () => {
     setAskForUsername(false);
     getMedia();
@@ -342,9 +352,9 @@ export default function VideoMeet() {
       connections[id].addStream(window.localStream);
       connections[id].createOffer().then((description) => {
         connections[id].setLocalDescription(description)
-        .then(() => {
-          socketRef.current.emit("signal", id, JSON.stringify({"sdp": connections[id].localDescription}))
-        }).catch(e => console.log(e));
+          .then(() => {
+            socketRef.current.emit("signal", id, JSON.stringify({ "sdp": connections[id].localDescription }))
+          }).catch(e => console.log(e));
       })
     }
 
@@ -366,16 +376,19 @@ export default function VideoMeet() {
       }
     })
   }
-  
+
   let getDisplayMedia = () => {
     if (screen) {
       if (navigator.mediaDevices.getDisplayMedia) {
-        navigator.mediaDevices.getDisplayMedia({video: true, audio: true})
-        .then(getDisplayMediaSuccess)
-        .then((stream) => {})        
-        .catch(e => console.log(e));
+        navigator.mediaDevices.getDisplayMedia({ video: true, audio: true })
+          .then(getDisplayMediaSuccess)
+          .then((stream) => { })
+          .catch(e => console.log(e));
       }
-    } 
+    }
+    else {
+      getUserMedia();
+    }
   }
 
   useEffect(() => {
@@ -388,29 +401,76 @@ export default function VideoMeet() {
     setScreen(!screen);
   }
 
+  let sendMessage = () => {
+    socketRef.current.emit("chat-message", message, username);
+    setMessage("");
+  }
+
+  let handleEndCall = () => {
+    try {
+      let tracks = localVideoRef.current.srcObject.getTracks();
+      tracks.forEach(track => track.stop());
+    } catch (e) { }
+    routeTo("/home");
+  }
+
   return (
 
     <div>
       {
         askForUsername === true ?
-          <div>
-            <h2>Enter into Lobby</h2>
-            <TextField id="filled-basic" variant="filled" label="Username" value={username} onChange={e => setUsername(e.target.value)} />
-            <Button variant="contained" onClick={connect}>Connect</Button>
-
-            <div>
-              <video ref={localVideoRef} autoPlay muted></video>
+          <div style={{padding: "10px"}}>
+            <h2 style={{padding: "10px"}}>Enter into Lobby</h2>
+            <TextField style={{paddingRight: "10px"}} id="filled-basic" variant="filled" label="Username" value={username} onChange={e => setUsername(e.target.value)} />
+            <Button  variant="contained" onClick={connect}>Connect</Button>
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+              <div>
+                <div>
+                  <video style={{borderRadius: "20px"}} height={"auto"} width={"800"} ref={localVideoRef} autoPlay muted></video>
+                </div>
+              </div>
             </div>
-          </div> :
+          </div>
+
+          :
 
           <div className={styles.meetVideoContainer}>
+
+            {
+              showModal ?
+                <div className={styles.chatRoom}>
+
+                  <div className={styles.chatContainer}>
+                    <h1>Chat</h1>
+
+                    <div className={styles.chattingDisplay}>
+                      {messages.length > 0 ? messages.map((item, index) => {
+                        return (
+                          <div key={index}>
+                            <p style={{ marginBottom: "20px", fontWeight: "bold" }}>{item.sender}</p>
+                            <p>{item.data}</p>
+                          </div>
+                        )
+                      }) :
+                        <p>No messages yet</p>}
+                    </div>
+
+                    <div className={styles.chattingArea}>
+                      <TextField value={message} onChange={e => setMessage(e.target.value)} id="filled-basic" label="Enter Your Chat" variant="filled" />
+                      <Button variant='contained' onClick={sendMessage}>Send</Button>
+                    </div>
+                  </div>
+
+                </div> :
+                <></>
+            }
 
             <div className={styles.buttonContainers}>
               <IconButton onClick={handleVideo} style={{ color: "white", }}>
                 {(video === true) ? <VideocamIcon /> : <VideocamOffIcon />}
               </IconButton>
 
-              <IconButton style={{ color: "red", }}>
+              <IconButton onClick={handleEndCall} style={{ color: "red", }}>
                 {<CallEndIcon />}
               </IconButton>
 
@@ -425,7 +485,7 @@ export default function VideoMeet() {
                 <></>}
 
               <Badge badgeContent={newMessages} max={999} color='primary'>
-                <IconButton style={{ color: "white", }}>
+                <IconButton onClick={() => setModal(!showModal)} style={{ color: "white", }}>
                   <ChatIcon />
                 </IconButton>
               </Badge>
@@ -433,6 +493,7 @@ export default function VideoMeet() {
             </div>
 
             <video className={styles.meetUserVideo} ref={localVideoRef} autoPlay muted></video>
+
             <div className={styles.conferenceView} >
               {videos.map((video) => (
                 <div key={video.socketId}>
@@ -449,6 +510,7 @@ export default function VideoMeet() {
                 </div>
               ))}
             </div>
+
           </div>
 
       }

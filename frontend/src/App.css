@@ -1,0 +1,25 @@
+.navBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-inline: 20px;
+}
+
+.meetContainer {
+    display: flex;
+    align-items: center;
+    height: 80vh;
+    gap: 10vw;
+    justify-content: center;
+}
+
+.rightPanel {
+    display: flex;
+    align-items: center;
+}
+
+.rightPanel > img {
+    width: 30vw;
+    height: auto;
+    border-radius: 20px;
+}
