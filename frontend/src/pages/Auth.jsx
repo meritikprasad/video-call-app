@@ -67,117 +67,120 @@ export default function Authentication() {
 
 
     return (
-        <ThemeProvider
-            theme={defaultTheme}>
-            <Grid container component="main" sx={{ height: '100vh' }}>
-                <CssBaseline />
-                <Grid
-                    item
-                    xs={false}
-                    sm={4}
-                    md={7}
-                    sx={{
-                        backgroundImage: 'url(https://source.unsplash.com/random?wallpapers)',
-                        backgroundRepeat: 'no-repeat',
-                        backgroundColor: (t) =>
-                            t.palette.mode === 'light' ? t.palette.grey[50] : t.palette.grey[900],
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                    }}
-                    style={{
-                        height: "100vh",
-                        width: "60vw",
-                        backgroundRepeat: "no-repeat",
-                        backgroundSize: "cover",
-                        backgroundImage: "url('/videologo.avif')"
-                    }}
+        <div style={{ display: "flex", justifyContent: "center" }}>
+            <ThemeProvider theme={defaultTheme}>
+                <Grid container component="main" sx={{ height: '100vh' }}>
+                    <CssBaseline />
+                    <Grid
+                        item
+                        xs={false}
+                        sm={4}
+                        md={7}
+                        sx={{
+                            backgroundImage: 'url(https://source.unsplash.com/random?wallpapers)',
+                            backgroundRepeat: 'no-repeat',
+                            backgroundColor: (t) =>
+                                t.palette.mode === 'light' ? t.palette.grey[50] : t.palette.grey[900],
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                        }}
+                    // style={{
+                    //     height: "100vh",
+                    //     width: "60vw",
+                    //     backgroundRepeat: "no-repeat",
+                    //     backgroundSize: "cover",
+                    //     backgroundImage: "url('/videologo.avif')"
+                    // }}
+                    />
+
+                    <div
+                    ></div>
+                    <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
+                        <Box
+                            sx={{
+                                my: 8,
+                                mx: 4,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                            }}
+                        >
+                            <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+                                <LockOutlinedIcon />
+                            </Avatar>
+
+                            <div>
+                                <Button variant={formState === 0 ? "contained" : ""} onClick={() => setFormState(0)}> Sign In
+                                </Button>
+                                <Button variant={formState === 1 ? "contained" : ""} onClick={() => setFormState(1)}>
+                                    Sign Up
+                                </Button>
+                            </div>
+
+                            <Box component="form" noValidate sx={{ mt: 1 }}>
+
+                                {formState === 1 ? <TextField
+                                    margin="normal"
+                                    required
+                                    fullWidth
+                                    id="name"
+                                    label="Full Name"
+                                    name="Full Name"
+                                    value={name}
+                                    autoFocus
+                                    onChange={(e) => setName(e.target.value)}
+                                />
+                                    : <></>}
+
+                                <TextField
+                                    margin="normal"
+                                    required
+                                    fullWidth
+                                    id="username"
+                                    label="Username"
+                                    name="username"
+                                    value={username}
+                                    autoFocus
+                                    onChange={(e) => setUsername(e.target.value)}
+                                />
+                                <TextField
+                                    margin="normal"
+                                    required
+                                    fullWidth
+                                    name="password"
+                                    label="Password"
+                                    value={password}
+                                    type="password"
+                                    id="password"
+                                    onChange={(e) => setPassword(e.target.value)}
+                                />
+
+                                <p style={{ color: "red" }}>{error}</p>
+
+                                <Button
+                                    type="button"
+                                    fullWidth
+                                    variant="contained"
+                                    sx={{ mt: 3, mb: 2 }}
+                                    onClick={handleAuth}
+                                >
+                                    {formState === 0 ? "login" : "register"}
+                                </Button>
+
+                            </Box>
+                        </Box>
+                    </Grid>
+                </Grid>
+                
+
+
+                <Snackbar
+                    open={open}
+                    autoHideDuration={4000}
+                    message={message}
                 />
 
-                <div
-                ></div>
-                <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
-                    <Box
-                        sx={{
-                            my: 8,
-                            mx: 4,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                        }}
-                    >
-                        <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
-                            <LockOutlinedIcon />
-                        </Avatar>
-
-                        <div>
-                            <Button variant={formState === 0 ? "contained" : ""} onClick={() => setFormState(0)}> Sign In
-                            </Button>
-                            <Button variant={formState === 1 ? "contained" : ""} onClick={() => setFormState(1)}>
-                                Sign Up
-                            </Button>
-                        </div>
-
-                        <Box component="form" noValidate sx={{ mt: 1 }}>
-
-                            {formState === 1 ? <TextField
-                                margin="normal"
-                                required
-                                fullWidth
-                                id="name"
-                                label="Full Name"
-                                name="Full Name"
-                                value={name}
-                                autoFocus
-                                onChange={(e) => setName(e.target.value)}
-                            />
-                                : <></>}
-
-                            <TextField
-                                margin="normal"
-                                required
-                                fullWidth
-                                id="username"
-                                label="Username"
-                                name="username"
-                                value={username}
-                                autoFocus
-                                onChange={(e) => setUsername(e.target.value)}
-                            />
-                            <TextField
-                                margin="normal"
-                                required
-                                fullWidth
-                                name="password"
-                                label="Password"
-                                value={password}
-                                type="password"
-                                id="password"
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
-
-                            <p style={{color: "red"}}>{error}</p>
-
-                            <Button
-                                type="button"
-                                fullWidth
-                                variant="contained"
-                                sx={{ mt: 3, mb: 2 }}
-                                onClick={handleAuth}
-                            >
-                            { formState === 0 ? "login" : "register"}
-                            </Button>
-
-                        </Box>
-                    </Box>
-                </Grid>
-            </Grid>
-
-            <Snackbar
-                open={open}
-                autoHideDuration={4000}
-                message={message}
-            />
-
-        </ThemeProvider>
+            </ThemeProvider>
+        </div>
     );
 }

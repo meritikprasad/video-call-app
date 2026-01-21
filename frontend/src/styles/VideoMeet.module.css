@@ -3,14 +3,14 @@
     /* neeche wala ka content height q nahi liya ? */
     /* => bcoz child absolute hai or normal flow se hatt gaya */
     position: relative;
-    height: 100vh; 
+    height: 100vh;
     background: rgb(64, 2, 61);
 }
 
 .meetUserVideo {
     position: absolute;
     bottom: 10vh;
-    right: 0;
+    left: 0;
     height: 20vh;
     width: auto;
     border-radius: 20px;
@@ -39,4 +39,25 @@
     height: 20vh;
     min-width: 30vw;
     border-radius: 10px;
+}
+
+.chatRoom {
+    position: absolute;
+    height: 90vh;
+    right: 0;
+    background: white;
+    border-radius: 10px;
+    width: 40vh;
+    bottom: 10vh;
+    padding-inline: 20px;
+}
+
+.chatContainer {
+    position: relative;
+    height: 100%;
+}
+
+.chattingArea {
+    position: absolute;
+    bottom: 0;
 }

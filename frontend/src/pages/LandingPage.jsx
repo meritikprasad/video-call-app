@@ -1,7 +1,10 @@
+import { Button } from "@mui/material";
 import "./LandingPage.css"
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function LandingPage() {
+
+    const routeTo = useNavigate();
     return (
         <div className="LandingPageContainer">
             <nav>
@@ -9,9 +12,16 @@ export default function LandingPage() {
                     <h2>Meelo Video Call</h2>
                 </div>
                 <div className="navList">
-                    <p>Join as Guest</p>
-                    <p>register</p>
-                    <div role="button">Login</div>
+                    <Button variant="contained" onClick={() => {
+                        // window.location.href = "/asqurep"
+                        routeTo("/adflad");
+                    }}>Join as Guest</Button>
+                    <Button variant="contained" onClick={() => {
+                        routeTo("/auth");
+                    }}>Register</Button>
+                    <Button variant="contained" onClick={() => {
+                        routeTo("/auth");
+                    }} role="button">Login</Button>
                 </div>
             </nav>
 

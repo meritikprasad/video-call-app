@@ -4,7 +4,7 @@ import bcrypt, { hash } from "bcrypt";
 // import crypto, { randomBytes } from "crypto"; 
 // we used both so both imp, not like inside crypto randombyte has come or vice versa
 import { randomBytes } from "crypto"; // better
-
+import { Meeting } from "../models/meeting.model.js";
 
 const login = async (req, res) => {
 
@@ -74,4 +74,33 @@ const register = async (req, res) => {
 }
 
 
-export { register, login };
+const getUserHistory = async (req, res) => {
+    const {token} = req.query;
+
+    try {
+        const user = await User.findOne({token: token});
+        const meetings = await Meeting.find({user_id: user.username});
+        res.json(meetings);
+    } catch (err) {
+        res.json({message: `something went wrong ${err}`});
+    }
+}
+
+const addToHistory = async (req, res) => {
+    const {token, meeting_code} = req.body;
+    try {
+        const user = await User.findOne({token: token});
+        const newMeeting = new Meeting({
+            user_id: user.username,
+            meetingCode: meeting_code
+        })
+
+        await newMeeting.save();
+
+        res.status(httpStatus.CREATED).json({message: "Added code to history"});
+    } catch (err) {
+       res.json({message: `something went wrong ${err}`});
+    }
+}
+
+export { register, login, getUserHistory, addToHistory };

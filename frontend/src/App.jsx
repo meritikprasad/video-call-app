@@ -4,6 +4,8 @@ import LandingPage from './pages/LandingPage'
 import Auth from './pages/auth';
 import { AuthProvider } from './contexts/AuthContext';
 import VideoMeet from './pages/VideoMeet';
+import HomeComponent from './pages/home';
+import History from './pages/History';
 
 function App() {
 
@@ -13,7 +15,9 @@ function App() {
         <Routes>
           <Route path="" element={<LandingPage />} />
           <Route path='/auth' element={<Auth />} />
+          <Route path='/home' element={<HomeComponent />} />
           <Route path='/:url' element={<VideoMeet />} />  {/* call it as slugs */}
+          <Route path='/history' element={<History />} />
         </Routes>
       </AuthProvider>
     </>
