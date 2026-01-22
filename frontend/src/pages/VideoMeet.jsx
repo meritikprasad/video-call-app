@@ -14,8 +14,9 @@ import ChatIcon from '@mui/icons-material/Chat';
 import { Badge, Button, IconButton, TextField } from '@mui/material';
 import { io } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
+import server from '../environment';
 
-const server_url = "http://localhost:8000";
+const server_url = server;
 
 var connections = {};
 
